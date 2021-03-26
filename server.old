@@ -1,0 +1,39 @@
+from flask import Flask
+from flask_restful import Api, Resource, reqparse
+from flask_cors import CORS
+from ast import literal_eval
+import json
+
+app = Flask(__name__)
+CORS(app)
+api = Api(app)
+
+body_request = reqparse.RequestParser()
+body_request.add_argument('secret', type=str)
+body_request.add_argument('event', type=str)
+body_request.add_argument('event_id', type=str)
+body_request.add_argument('restaurant_id', type=str)
+body_request.add_argument('restaurant_name', type=str)
+body_request.add_argument('restaurant_address', type=str)
+body_request.add_argument('order_type', type=str)
+body_request.add_argument('data', type=str)
+
+
+class Webhook(Resource):
+    def post(self):
+        data = body_request.parse_args()
+        data = {key:data[key] for key in data if data[key] is not None}
+        # data = literal_eval(data)
+        j = json.dumps(data)
+        with open('data.json', 'w') as f:
+            f.write(j)
+            f.close()
+        return {'data': data}
+
+api.add_resource(Webhook, '/webhook')
+        
+
+if __name__ == '__main__':
+    app.run(port=4242)
+
+
